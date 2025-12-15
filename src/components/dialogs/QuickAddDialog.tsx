@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 type AddType = 'idea' | 'task' | 'project';
 
 export function QuickAddDialog() {
-  const { quickAddOpen, setQuickAddOpen, createIdea, createTask, createProject, currentProfile } = useApp();
+  const { quickAddOpen, setQuickAddOpen, createIdea, createTask, createProject, areas } = useApp();
   const [type, setType] = useState<AddType>('idea');
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
@@ -41,7 +41,7 @@ export function QuickAddDialog() {
         createProject({
           title: title.trim(),
           description: notes.trim() || undefined,
-          areaId: currentProfile.areas[0]?.id || '',
+          areaId: areas[0]?.id || '',
           status: 'backlog',
           priority: 'medium',
           tags: [],

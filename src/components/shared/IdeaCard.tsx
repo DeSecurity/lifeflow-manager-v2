@@ -18,7 +18,7 @@ interface IdeaCardProps {
 
 export function IdeaCard({ idea }: IdeaCardProps) {
   const { 
-    currentProfile, 
+    areas, 
     convertIdeaToProject, 
     convertIdeaToTask, 
     archiveIdea, 
@@ -26,7 +26,7 @@ export function IdeaCard({ idea }: IdeaCardProps) {
   } = useApp();
 
   const area = idea.areaId 
-    ? currentProfile.areas.find(a => a.id === idea.areaId)
+    ? areas.find(a => a.id === idea.areaId)
     : null;
 
   return (

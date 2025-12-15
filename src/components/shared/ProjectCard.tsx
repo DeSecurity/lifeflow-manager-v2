@@ -35,12 +35,12 @@ const statusLabels: Record<ProjectStatus, string> = {
 };
 
 export function ProjectCard({ project, onClick }: ProjectCardProps) {
-  const { currentProfile, updateProject, deleteProject, setCurrentView, setSelectedProjectId } = useApp();
+  const { areas, tasks, updateProject, deleteProject, setCurrentView, setSelectedProjectId } = useApp();
 
-  const area = currentProfile.areas.find(a => a.id === project.areaId);
-  const tasks = currentProfile.tasks.filter(t => t.projectId === project.id);
-  const completedTasks = tasks.filter(t => t.status === 'done').length;
-  const progress = tasks.length > 0 ? completedTasks / tasks.length : 0;
+  const area = areas.find(a => a.id === project.areaId);
+  const projectTasks = tasks.filter(t => t.projectId === project.id);
+  const completedTasks = projectTasks.filter(t => t.status === 'done').length;
+  const progress = projectTasks.length > 0 ? completedTasks / projectTasks.length : 0;
 
   const handleClick = () => {
     if (onClick) {
@@ -126,11 +126,11 @@ export function ProjectCard({ project, onClick }: ProjectCardProps) {
       )}
 
       {/* Progress Bar */}
-      {tasks.length > 0 && (
+      {projectTasks.length > 0 && (
         <div className="mb-3">
           <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
             <span>Progress</span>
-            <span>{completedTasks}/{tasks.length} tasks</span>
+            <span>{completedTasks}/{projectTasks.length} tasks</span>
           </div>
           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
             <div
