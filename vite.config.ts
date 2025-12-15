@@ -4,7 +4,10 @@ import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
   plugins: [react()],
-  base: "/focused-life-hq/",        // 👈 important
+  server: {
+    host: "::",
+    port: 8080,
+  },
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
