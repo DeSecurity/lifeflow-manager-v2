@@ -14,7 +14,302 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      areas: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ideas: {
+        Row: {
+          archived: boolean | null
+          area_id: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          tags: string[] | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          archived?: boolean | null
+          area_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          tags?: string[] | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          archived?: boolean | null
+          area_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          tags?: string[] | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ideas_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          name?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          archived: boolean | null
+          area_id: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          goal_type: string | null
+          id: string
+          is_focus: boolean | null
+          priority: string
+          start_date: string | null
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          archived?: boolean | null
+          area_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          goal_type?: string | null
+          id?: string
+          is_focus?: boolean | null
+          priority?: string
+          start_date?: string | null
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          archived?: boolean | null
+          area_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          goal_type?: string | null
+          id?: string
+          is_focus?: boolean | null
+          priority?: string
+          start_date?: string | null
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tags: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          area_id: string | null
+          checklist_items: Json | null
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          estimate_minutes: number | null
+          id: string
+          is_today: boolean | null
+          parent_task_id: string | null
+          priority: string
+          project_id: string | null
+          status: string
+          tags: string[] | null
+          time_spent_minutes: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          area_id?: string | null
+          checklist_items?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          estimate_minutes?: number | null
+          id?: string
+          is_today?: boolean | null
+          parent_task_id?: string | null
+          priority?: string
+          project_id?: string | null
+          status?: string
+          tags?: string[] | null
+          time_spent_minutes?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          area_id?: string | null
+          checklist_items?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          estimate_minutes?: number | null
+          id?: string
+          is_today?: boolean | null
+          parent_task_id?: string | null
+          priority?: string
+          project_id?: string | null
+          status?: string
+          tags?: string[] | null
+          time_spent_minutes?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_parent_task_id_fkey"
+            columns: ["parent_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_settings: {
+        Row: {
+          created_at: string
+          default_task_grouping: string
+          default_view: string
+          hide_completed_tasks: boolean
+          id: string
+          theme: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_task_grouping?: string
+          default_view?: string
+          hide_completed_tasks?: boolean
+          id?: string
+          theme?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_task_grouping?: string
+          default_view?: string
+          hide_completed_tasks?: boolean
+          id?: string
+          theme?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -35,7 +35,7 @@ const priorityDots: Record<Priority, string> = {
 };
 
 export function TaskCard({ task, showProject = true, isDraggable = true }: TaskCardProps) {
-  const { currentProfile, updateTaskStatus, toggleTaskToday, deleteTask } = useApp();
+  const { projects, updateTaskStatus, toggleTaskToday, deleteTask } = useApp();
   
   const {
     attributes,
@@ -52,7 +52,7 @@ export function TaskCard({ task, showProject = true, isDraggable = true }: TaskC
   };
 
   const project = task.projectId 
-    ? currentProfile.projects.find(p => p.id === task.projectId)
+    ? projects.find(p => p.id === task.projectId)
     : null;
 
   const checklistProgress = task.checklistItems.length > 0

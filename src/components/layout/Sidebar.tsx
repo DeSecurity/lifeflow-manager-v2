@@ -11,8 +11,10 @@ import {
   ChevronRight,
   Plus,
   Inbox,
+  LogOut,
 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { ViewType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -32,14 +34,17 @@ export function Sidebar() {
     sidebarCollapsed, 
     setSidebarCollapsed,
     setQuickAddOpen,
-    currentProfile,
+    tasks,
+    ideas,
+    projects,
     setSelectedProjectId,
   } = useApp();
+  const { user, signOut } = useAuth();
 
   // Calculate badges
-  const todayTasks = currentProfile.tasks.filter(t => t.isToday && t.status !== 'done').length;
-  const ideasCount = currentProfile.ideas.filter(i => !i.archived).length;
-  const inProgressTasks = currentProfile.tasks.filter(t => t.status !== 'done').length;
+  const todayTasks = tasks.filter(t => t.isToday && t.status !== 'done').length;
+  const ideasCount = ideas.filter(i => !i.archived).length;
+  const inProgressTasks = tasks.filter(t => t.status !== 'done').length;
 
   const mainNavItems: NavItem[] = [
     { id: 'today', label: 'Today', icon: Calendar, badge: todayTasks },
@@ -210,23 +215,36 @@ export function Sidebar() {
         ))}
       </div>
 
-      {/* Profile Indicator */}
-      {!sidebarCollapsed && (
+      {/* User Indicator */}
+      {!sidebarCollapsed && user && (
         <div className="p-3 border-t border-sidebar-border">
           <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-sidebar-accent/50">
             <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary/50 to-accent/50 flex items-center justify-center">
               <span className="text-sm font-medium text-foreground">
-                {currentProfile.name.charAt(0).toUpperCase()}
+                {user.email?.charAt(0).toUpperCase()}
               </span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-sidebar-foreground truncate">
-                {currentProfile.name}
+                {user.email}
               </p>
               <p className="text-xs text-muted-foreground">
-                {currentProfile.projects.length} projects
+                {projects.length} projects
               </p>
             </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={signOut}
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Sign out</TooltipContent>
+            </Tooltip>
           </div>
         </div>
       )}
