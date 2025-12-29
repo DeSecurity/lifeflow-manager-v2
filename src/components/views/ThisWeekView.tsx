@@ -1,12 +1,16 @@
-import { useMemo } from 'react';
-import { CalendarDays, Plus, Sun } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { CalendarDays, Plus } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { TaskCard } from '@/components/shared/TaskCard';
+import { TaskDetailDrawer } from '@/components/dialogs/TaskDetailDrawer';
 import { Button } from '@/components/ui/button';
-import { addDays, format, startOfDay, endOfWeek, isWithinInterval } from 'date-fns';
+import { addDays, format, startOfDay } from 'date-fns';
+import { Task } from '@/lib/types';
 
 export function ThisWeekView() {
   const { tasks, openQuickAdd } = useApp();
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const weekDays = useMemo(() => {
     const today = startOfDay(new Date());
@@ -50,6 +54,11 @@ export function ThisWeekView() {
 
   const totalTasks = weekDays.reduce((acc, day) => acc + day.tasks.length, 0) + overdueTasks.length;
 
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task);
+    setDrawerOpen(true);
+  };
+
   return (
     <div className="p-8 max-w-4xl mx-auto animate-fade-in">
       {/* Header */}
@@ -80,7 +89,9 @@ export function ThisWeekView() {
           </div>
           <div className="space-y-2 p-4 bg-destructive/5 rounded-xl border border-destructive/20">
             {overdueTasks.map(task => (
-              <TaskCard key={task.id} task={task} isDraggable={false} />
+              <div key={task.id} onClick={() => handleTaskClick(task)} className="cursor-pointer">
+                <TaskCard task={task} isDraggable={false} />
+              </div>
             ))}
           </div>
         </section>
@@ -104,7 +115,9 @@ export function ThisWeekView() {
             {day.tasks.length > 0 ? (
               <div className="space-y-2">
                 {day.tasks.map(task => (
-                  <TaskCard key={task.id} task={task} isDraggable={false} />
+                  <div key={task.id} onClick={() => handleTaskClick(task)} className="cursor-pointer">
+                    <TaskCard task={task} isDraggable={false} />
+                  </div>
                 ))}
               </div>
             ) : (
@@ -115,6 +128,12 @@ export function ThisWeekView() {
           </section>
         ))}
       </div>
+
+      <TaskDetailDrawer
+        task={selectedTask}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { 
   Layers, 
   Briefcase, 
@@ -10,9 +10,25 @@ import {
   Sparkles,
   FolderKanban,
   CheckSquare,
+  Plus,
 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const areaIcons: Record<string, React.ElementType> = {
   briefcase: Briefcase,
@@ -34,8 +50,33 @@ const areaColors: Record<string, string> = {
   'area-personal': 'from-cyan-500 to-teal-600',
 };
 
+const iconOptions = [
+  { value: 'briefcase', label: 'Briefcase', icon: Briefcase },
+  { value: 'heart', label: 'Heart', icon: Heart },
+  { value: 'users', label: 'Users', icon: Users },
+  { value: 'book', label: 'Book', icon: BookOpen },
+  { value: 'wallet', label: 'Wallet', icon: Wallet },
+  { value: 'home', label: 'Home', icon: Home },
+  { value: 'sparkles', label: 'Sparkles', icon: Sparkles },
+];
+
+const colorOptions = [
+  { value: 'area-work', label: 'Blue' },
+  { value: 'area-health', label: 'Green' },
+  { value: 'area-relationships', label: 'Pink' },
+  { value: 'area-learning', label: 'Purple' },
+  { value: 'area-finances', label: 'Yellow' },
+  { value: 'area-home', label: 'Orange' },
+  { value: 'area-personal', label: 'Cyan' },
+];
+
 export function AreasView() {
-  const { areas, projects, tasks, setCurrentView, setSelectedAreaId } = useApp();
+  const { areas, projects, tasks, setCurrentView, setSelectedAreaId, createArea } = useApp();
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [newAreaName, setNewAreaName] = useState('');
+  const [newAreaDescription, setNewAreaDescription] = useState('');
+  const [newAreaIcon, setNewAreaIcon] = useState('sparkles');
+  const [newAreaColor, setNewAreaColor] = useState('area-personal');
 
   const areaStats = useMemo(() => {
     return areas.map(area => {
@@ -58,11 +99,28 @@ export function AreasView() {
     });
   }, [areas, projects, tasks]);
 
+  const handleAddArea = () => {
+    if (!newAreaName.trim()) return;
+    
+    createArea({
+      name: newAreaName.trim(),
+      description: newAreaDescription.trim() || undefined,
+      icon: newAreaIcon,
+      color: newAreaColor,
+    });
+
+    setNewAreaName('');
+    setNewAreaDescription('');
+    setNewAreaIcon('sparkles');
+    setNewAreaColor('area-personal');
+    setShowAddDialog(false);
+  };
+
   return (
     <div className="p-8 max-w-4xl mx-auto animate-fade-in">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
           <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center glow-sm">
             <Layers className="h-6 w-6 text-white" />
           </div>
@@ -71,6 +129,10 @@ export function AreasView() {
             <p className="text-muted-foreground">Organize your life into meaningful categories</p>
           </div>
         </div>
+        <Button onClick={() => setShowAddDialog(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Area
+        </Button>
       </div>
 
       {/* Areas Grid */}
@@ -140,6 +202,92 @@ export function AreasView() {
           );
         })}
       </div>
+
+      {/* Add Area Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="sm:max-w-[425px] bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Add New Area</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div>
+              <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                Name
+              </label>
+              <Input
+                value={newAreaName}
+                onChange={e => setNewAreaName(e.target.value)}
+                placeholder="Area name"
+                className="bg-surface-2 border-border"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                Description
+              </label>
+              <Input
+                value={newAreaDescription}
+                onChange={e => setNewAreaDescription(e.target.value)}
+                placeholder="Optional description"
+                className="bg-surface-2 border-border"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                  Icon
+                </label>
+                <Select value={newAreaIcon} onValueChange={setNewAreaIcon}>
+                  <SelectTrigger className="bg-surface-2 border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {iconOptions.map(opt => {
+                      const IconComponent = opt.icon;
+                      return (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          <div className="flex items-center gap-2">
+                            <IconComponent className="h-4 w-4" />
+                            {opt.label}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                  Color
+                </label>
+                <Select value={newAreaColor} onValueChange={setNewAreaColor}>
+                  <SelectTrigger className="bg-surface-2 border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {colorOptions.map(opt => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        <div className="flex items-center gap-2">
+                          <div className={cn('h-3 w-3 rounded-full bg-gradient-to-r', areaColors[opt.value])} />
+                          {opt.label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="ghost" onClick={() => setShowAddDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleAddArea} disabled={!newAreaName.trim()}>
+                Add Area
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

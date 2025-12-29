@@ -45,6 +45,7 @@ export function Sidebar() {
   const todayTasks = tasks.filter(t => t.isToday && t.status !== 'done').length;
   const ideasCount = ideas.filter(i => !i.archived).length;
   const inProgressTasks = tasks.filter(t => t.status !== 'done').length;
+  const projectsCount = projects.filter(p => !p.archived).length;
 
   const mainNavItems: NavItem[] = [
     { id: 'today', label: 'Today', icon: Calendar, badge: todayTasks },
@@ -54,7 +55,7 @@ export function Sidebar() {
 
   const workspaceItems: NavItem[] = [
     { id: 'ideas', label: 'Ideas', icon: Lightbulb, badge: ideasCount },
-    { id: 'projects', label: 'Projects', icon: FolderKanban },
+    { id: 'projects', label: 'Projects', icon: FolderKanban, badge: projectsCount },
     { id: 'board', label: 'Board', icon: CheckSquare, badge: inProgressTasks },
     { id: 'areas', label: 'Areas', icon: Layers },
   ];
