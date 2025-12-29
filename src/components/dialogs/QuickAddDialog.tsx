@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Lightbulb, FolderKanban, CheckSquare } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import {
@@ -15,10 +15,17 @@ import { cn } from '@/lib/utils';
 type AddType = 'idea' | 'task' | 'project';
 
 export function QuickAddDialog() {
-  const { quickAddOpen, setQuickAddOpen, createIdea, createTask, createProject, areas } = useApp();
+  const { quickAddOpen, setQuickAddOpen, quickAddDefaults, createIdea, createTask, createProject, areas } = useApp();
   const [type, setType] = useState<AddType>('idea');
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
+  
+  // Set defaults when dialog opens
+  useEffect(() => {
+    if (quickAddOpen) {
+      setType(quickAddDefaults.type || 'idea');
+    }
+  }, [quickAddOpen, quickAddDefaults.type]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +42,7 @@ export function QuickAddDialog() {
           status: 'todo',
           priority: 'medium',
           tags: [],
+          isToday: quickAddDefaults.isToday,
         });
         break;
       case 'project':
