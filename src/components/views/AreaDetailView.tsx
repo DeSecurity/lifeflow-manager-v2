@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { 
   ArrowLeft,
   Briefcase, 
@@ -14,9 +14,11 @@ import {
   Plus,
 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
+import { Task } from '@/lib/types';
 import { TaskCard } from '@/components/shared/TaskCard';
 import { ProjectCard } from '@/components/shared/ProjectCard';
 import { IdeaCard } from '@/components/shared/IdeaCard';
+import { TaskDetailDrawer } from '@/components/dialogs/TaskDetailDrawer';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -42,8 +44,15 @@ const areaColors: Record<string, string> = {
 
 export function AreaDetailView() {
   const { areas, projects, tasks, ideas, selectedAreaId, setSelectedAreaId, setCurrentView, openQuickAdd } = useApp();
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [taskDrawerOpen, setTaskDrawerOpen] = useState(false);
 
   const area = areas.find(a => a.id === selectedAreaId);
+
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task);
+    setTaskDrawerOpen(true);
+  };
 
   const areaProjects = useMemo(() => {
     return projects.filter(p => p.areaId === selectedAreaId && !p.archived);
@@ -155,7 +164,9 @@ export function AreaDetailView() {
         {areaTasks.length > 0 ? (
           <div className="space-y-2">
             {areaTasks.map(task => (
-              <TaskCard key={task.id} task={task} isDraggable={false} />
+              <div key={task.id} onClick={() => handleTaskClick(task)} className="cursor-pointer">
+                <TaskCard task={task} isDraggable={false} />
+              </div>
             ))}
           </div>
         ) : (
@@ -195,6 +206,13 @@ export function AreaDetailView() {
           </div>
         )}
       </section>
+
+      {/* Task Detail Drawer */}
+      <TaskDetailDrawer
+        task={selectedTask}
+        open={taskDrawerOpen}
+        onOpenChange={setTaskDrawerOpen}
+      />
     </div>
   );
 }
