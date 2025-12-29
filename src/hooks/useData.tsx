@@ -338,7 +338,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       time_spent_minutes: task.timeSpentMinutes || 0,
       due_date: task.dueDate,
       is_today: task.isToday,
-      checklist_items: task.checklistItems || [],
+      checklist_items: (task.checklistItems || []) as unknown as any,
       completed_at: task.completedAt,
     }]);
     if (error) {
@@ -367,7 +367,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (updates.timeSpentMinutes !== undefined) updateData.time_spent_minutes = updates.timeSpentMinutes;
     if (updates.dueDate !== undefined) updateData.due_date = updates.dueDate;
     if (updates.isToday !== undefined) updateData.is_today = updates.isToday;
-    if (updates.checklistItems !== undefined) updateData.checklist_items = updates.checklistItems;
+    if (updates.checklistItems !== undefined) updateData.checklist_items = updates.checklistItems as unknown as any;
     if (updates.completedAt !== undefined) updateData.completed_at = updates.completedAt;
 
     const { error } = await supabase.from('tasks').update(updateData).eq('id', id);

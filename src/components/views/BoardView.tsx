@@ -32,7 +32,7 @@ const COLUMNS: { id: TaskStatus; label: string; color: string }[] = [
 ];
 
 export function BoardView() {
-  const { currentProfile, updateTaskStatus } = useApp();
+  const { tasks, projects, areas, updateTaskStatus } = useApp();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [projectFilter, setProjectFilter] = useState<string>('all');
   const [areaFilter, setAreaFilter] = useState<string>('all');
@@ -46,15 +46,15 @@ export function BoardView() {
   );
 
   const filteredTasks = useMemo(() => {
-    return currentProfile.tasks.filter(task => {
+    return tasks.filter(task => {
       if (projectFilter !== 'all' && task.projectId !== projectFilter) return false;
       if (areaFilter !== 'all') {
-        const taskArea = task.areaId || currentProfile.projects.find(p => p.id === task.projectId)?.areaId;
+        const taskArea = task.areaId || projects.find(p => p.id === task.projectId)?.areaId;
         if (taskArea !== areaFilter) return false;
       }
       return true;
     });
-  }, [currentProfile.tasks, currentProfile.projects, projectFilter, areaFilter]);
+  }, [tasks, projects, projectFilter, areaFilter]);
 
   const tasksByStatus = useMemo(() => {
     const grouped: Record<TaskStatus, Task[]> = {
@@ -74,7 +74,7 @@ export function BoardView() {
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    const task = currentProfile.tasks.find(t => t.id === active.id);
+    const task = tasks.find(t => t.id === active.id);
     if (task) setActiveTask(task);
   };
 
@@ -115,7 +115,7 @@ export function BoardView() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Projects</SelectItem>
-                {currentProfile.projects.filter(p => !p.archived).map(project => (
+                {projects.filter(p => !p.archived).map(project => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.title}
                   </SelectItem>
@@ -129,7 +129,7 @@ export function BoardView() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Areas</SelectItem>
-                {currentProfile.areas.map(area => (
+                {areas.map(area => (
                   <SelectItem key={area.id} value={area.id}>
                     {area.name}
                   </SelectItem>

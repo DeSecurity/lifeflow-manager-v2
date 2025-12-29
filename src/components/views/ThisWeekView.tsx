@@ -1,15 +1,15 @@
 import { useMemo } from 'react';
-import { CalendarDays, ChevronRight } from 'lucide-react';
+import { CalendarDays } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { TaskCard } from '@/components/shared/TaskCard';
-import { addDays, format, isToday, isTomorrow, startOfDay } from 'date-fns';
+import { addDays, format, startOfDay } from 'date-fns';
 
 export function ThisWeekView() {
-  const { currentProfile } = useApp();
+  const { tasks } = useApp();
 
   const weekDays = useMemo(() => {
     const today = startOfDay(new Date());
-    const days: { date: Date; label: string; tasks: typeof currentProfile.tasks }[] = [];
+    const days: { date: Date; label: string; tasks: typeof tasks }[] = [];
 
     for (let i = 0; i < 7; i++) {
       const date = addDays(today, i);
@@ -17,26 +17,26 @@ export function ThisWeekView() {
       if (i === 0) label = 'Today - ' + format(date, 'MMMM d');
       else if (i === 1) label = 'Tomorrow - ' + format(date, 'MMMM d');
 
-      const tasks = currentProfile.tasks.filter(task => {
+      const dayTasks = tasks.filter(task => {
         if (!task.dueDate || task.status === 'done') return false;
         const dueDate = startOfDay(new Date(task.dueDate));
         return dueDate.getTime() === date.getTime();
       });
 
-      days.push({ date, label, tasks });
+      days.push({ date, label, tasks: dayTasks });
     }
 
     return days;
-  }, [currentProfile.tasks]);
+  }, [tasks]);
 
   const overdueTasks = useMemo(() => {
     const today = startOfDay(new Date());
-    return currentProfile.tasks.filter(task => {
+    return tasks.filter(task => {
       if (!task.dueDate || task.status === 'done') return false;
       const dueDate = startOfDay(new Date(task.dueDate));
       return dueDate < today;
     });
-  }, [currentProfile.tasks]);
+  }, [tasks]);
 
   const totalTasks = weekDays.reduce((acc, day) => acc + day.tasks.length, 0) + overdueTasks.length;
 

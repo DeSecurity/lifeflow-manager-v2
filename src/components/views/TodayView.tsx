@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 
 export function TodayView() {
-  const { currentProfile, setQuickAddOpen } = useApp();
+  const { tasks, projects, setQuickAddOpen } = useApp();
 
   const todayTasks = useMemo(() => {
-    return currentProfile.tasks
+    return tasks
       .filter(t => t.isToday && t.status !== 'done')
       .sort((a, b) => {
         // Sort by priority then by creation date
@@ -19,22 +19,22 @@ export function TodayView() {
         if (priorityDiff !== 0) return priorityDiff;
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       });
-  }, [currentProfile.tasks]);
+  }, [tasks]);
 
   const completedToday = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return currentProfile.tasks.filter(t => {
+    return tasks.filter(t => {
       if (!t.completedAt) return false;
       const completedDate = new Date(t.completedAt);
       completedDate.setHours(0, 0, 0, 0);
       return completedDate.getTime() === today.getTime();
     });
-  }, [currentProfile.tasks]);
+  }, [tasks]);
 
   const focusProjects = useMemo(() => {
-    return currentProfile.projects.filter(p => p.isFocus && !p.archived);
-  }, [currentProfile.projects]);
+    return projects.filter(p => p.isFocus && !p.archived);
+  }, [projects]);
 
   return (
     <div className="p-8 max-w-4xl mx-auto animate-fade-in">

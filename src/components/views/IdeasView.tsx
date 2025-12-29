@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export function IdeasView() {
-  const { currentProfile, setQuickAddOpen } = useApp();
+  const { ideas, setQuickAddOpen } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [showArchived, setShowArchived] = useState(false);
 
-  const ideas = useMemo(() => {
-    return currentProfile.ideas
+  const filteredIdeas = useMemo(() => {
+    return ideas
       .filter(idea => {
         if (showArchived !== (idea.archived || false)) return false;
         if (searchQuery) {
@@ -24,10 +24,10 @@ export function IdeasView() {
         return true;
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [currentProfile.ideas, searchQuery, showArchived]);
+  }, [ideas, searchQuery, showArchived]);
 
-  const activeCount = currentProfile.ideas.filter(i => !i.archived).length;
-  const archivedCount = currentProfile.ideas.filter(i => i.archived).length;
+  const activeCount = ideas.filter(i => !i.archived).length;
+  const archivedCount = ideas.filter(i => i.archived).length;
 
   return (
     <div className="p-8 max-w-4xl mx-auto animate-fade-in">
@@ -79,9 +79,9 @@ export function IdeasView() {
       </div>
 
       {/* Ideas Grid */}
-      {ideas.length > 0 ? (
+      {filteredIdeas.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {ideas.map(idea => (
+          {filteredIdeas.map(idea => (
             <IdeaCard key={idea.id} idea={idea} />
           ))}
         </div>
