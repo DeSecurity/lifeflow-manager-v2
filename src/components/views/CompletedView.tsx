@@ -5,10 +5,10 @@ import { TaskCard } from '@/components/shared/TaskCard';
 import { format, startOfDay, subDays } from 'date-fns';
 
 export function CompletedView() {
-  const { currentProfile } = useApp();
+  const { tasks } = useApp();
 
   const groupedByDay = useMemo(() => {
-    const completed = currentProfile.tasks
+    const completed = tasks
       .filter(t => t.status === 'done' && t.completedAt)
       .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime());
 
@@ -35,9 +35,9 @@ export function CompletedView() {
     });
 
     return grouped;
-  }, [currentProfile.tasks]);
+  }, [tasks]);
 
-  const totalCompleted = currentProfile.tasks.filter(t => t.status === 'done').length;
+  const totalCompleted = tasks.filter(t => t.status === 'done').length;
 
   return (
     <div className="p-8 max-w-4xl mx-auto animate-fade-in">

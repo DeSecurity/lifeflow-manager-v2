@@ -5,10 +5,10 @@ import { TaskCard } from '@/components/shared/TaskCard';
 import { Button } from '@/components/ui/button';
 
 export function BacklogView() {
-  const { currentProfile, setQuickAddOpen } = useApp();
+  const { tasks, setQuickAddOpen } = useApp();
 
   const backlogTasks = useMemo(() => {
-    return currentProfile.tasks
+    return tasks
       .filter(t => !t.dueDate && t.status !== 'done' && !t.isToday)
       .sort((a, b) => {
         const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -16,7 +16,7 @@ export function BacklogView() {
         if (priorityDiff !== 0) return priorityDiff;
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
-  }, [currentProfile.tasks]);
+  }, [tasks]);
 
   return (
     <div className="p-8 max-w-4xl mx-auto animate-fade-in">

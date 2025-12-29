@@ -14,15 +14,15 @@ import {
 } from '@/components/ui/select';
 
 export function ProjectsView() {
-  const { currentProfile, setQuickAddOpen } = useApp();
+  const { projects, areas, setQuickAddOpen } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'all'>('all');
   const [areaFilter, setAreaFilter] = useState<string>('all');
   const [showArchived, setShowArchived] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  const projects = useMemo(() => {
-    return currentProfile.projects
+  const filteredProjects = useMemo(() => {
+    return projects
       .filter(project => {
         if (showArchived !== (project.archived || false)) return false;
         if (statusFilter !== 'all' && project.status !== statusFilter) return false;
@@ -42,10 +42,10 @@ export function ProjectsView() {
         if (!a.isFocus && b.isFocus) return 1;
         return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
       });
-  }, [currentProfile.projects, searchQuery, statusFilter, areaFilter, showArchived]);
+  }, [projects, searchQuery, statusFilter, areaFilter, showArchived]);
 
-  const activeCount = currentProfile.projects.filter(p => !p.archived).length;
-  const archivedCount = currentProfile.projects.filter(p => p.archived).length;
+  const activeCount = projects.filter(p => !p.archived).length;
+  const archivedCount = projects.filter(p => p.archived).length;
 
   return (
     <div className="p-8 max-w-6xl mx-auto animate-fade-in">
@@ -97,7 +97,7 @@ export function ProjectsView() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Areas</SelectItem>
-            {currentProfile.areas.map(area => (
+            {areas.map(area => (
               <SelectItem key={area.id} value={area.id}>
                 {area.name}
               </SelectItem>
@@ -140,12 +140,12 @@ export function ProjectsView() {
       </div>
 
       {/* Projects Grid/List */}
-      {projects.length > 0 ? (
+      {filteredProjects.length > 0 ? (
         <div className={viewMode === 'grid' 
           ? 'grid gap-4 md:grid-cols-2 lg:grid-cols-3' 
           : 'space-y-3'
         }>
-          {projects.map(project => (
+          {filteredProjects.map(project => (
             <ProjectCard key={project.id} project={project} />
           ))}
         </div>

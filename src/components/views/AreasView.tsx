@@ -35,28 +35,28 @@ const areaColors: Record<string, string> = {
 };
 
 export function AreasView() {
-  const { currentProfile, setCurrentView, setSelectedProjectId } = useApp();
+  const { areas, projects, tasks, setCurrentView, setSelectedProjectId } = useApp();
 
   const areaStats = useMemo(() => {
-    return currentProfile.areas.map(area => {
-      const projects = currentProfile.projects.filter(p => p.areaId === area.id && !p.archived);
-      const tasks = currentProfile.tasks.filter(t => {
+    return areas.map(area => {
+      const areaProjects = projects.filter(p => p.areaId === area.id && !p.archived);
+      const areaTasks = tasks.filter(t => {
         if (t.areaId === area.id) return true;
-        const project = currentProfile.projects.find(p => p.id === t.projectId);
+        const project = projects.find(p => p.id === t.projectId);
         return project?.areaId === area.id;
       });
-      const completedTasks = tasks.filter(t => t.status === 'done').length;
-      const progress = tasks.length > 0 ? completedTasks / tasks.length : 0;
+      const completedTasks = areaTasks.filter(t => t.status === 'done').length;
+      const progress = areaTasks.length > 0 ? completedTasks / areaTasks.length : 0;
 
       return {
         area,
-        projects: projects.length,
-        totalTasks: tasks.length,
+        projects: areaProjects.length,
+        totalTasks: areaTasks.length,
         completedTasks,
         progress,
       };
     });
-  }, [currentProfile]);
+  }, [areas, projects, tasks]);
 
   return (
     <div className="p-8 max-w-4xl mx-auto animate-fade-in">
@@ -75,7 +75,7 @@ export function AreasView() {
 
       {/* Areas Grid */}
       <div className="grid gap-4 md:grid-cols-2">
-        {areaStats.map(({ area, projects, totalTasks, completedTasks, progress }) => {
+        {areaStats.map(({ area, projects: projectCount, totalTasks, completedTasks, progress }) => {
           const Icon = areaIcons[area.icon || 'sparkles'] || Sparkles;
           const gradient = areaColors[area.color || 'area-personal'] || 'from-primary to-accent';
 
@@ -108,7 +108,7 @@ export function AreasView() {
                 <div className="flex items-center gap-2">
                   <FolderKanban className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">
-                    {projects} project{projects !== 1 ? 's' : ''}
+                    {projectCount} project{projectCount !== 1 ? 's' : ''}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">

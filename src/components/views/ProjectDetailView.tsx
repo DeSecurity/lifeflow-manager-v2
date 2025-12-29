@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ArrowLeft, Plus, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, MoreHorizontal, Trash2 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { TaskCard } from '@/components/shared/TaskCard';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -33,7 +32,9 @@ const statusColors: Record<ProjectStatus, string> = {
 
 export function ProjectDetailView() {
   const { 
-    currentProfile, 
+    projects,
+    tasks,
+    areas,
     selectedProjectId, 
     setCurrentView, 
     setSelectedProjectId,
@@ -45,11 +46,11 @@ export function ProjectDetailView() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [showAddTask, setShowAddTask] = useState(false);
 
-  const project = currentProfile.projects.find(p => p.id === selectedProjectId);
+  const project = projects.find(p => p.id === selectedProjectId);
   
-  const tasks = useMemo(() => {
+  const projectTasks = useMemo(() => {
     if (!project) return [];
-    return currentProfile.tasks
+    return tasks
       .filter(t => t.projectId === project.id)
       .sort((a, b) => {
         // Sort by status, then priority
@@ -59,11 +60,11 @@ export function ProjectDetailView() {
         const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
         return priorityOrder[a.priority] - priorityOrder[b.priority];
       });
-  }, [project, currentProfile.tasks]);
+  }, [project, tasks]);
 
-  const area = project ? currentProfile.areas.find(a => a.id === project.areaId) : null;
-  const completedTasks = tasks.filter(t => t.status === 'done').length;
-  const progress = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
+  const area = project ? areas.find(a => a.id === project.areaId) : null;
+  const completedTasks = projectTasks.filter(t => t.status === 'done').length;
+  const progress = projectTasks.length > 0 ? (completedTasks / projectTasks.length) * 100 : 0;
 
   if (!project) {
     return (
@@ -194,7 +195,7 @@ export function ProjectDetailView() {
         <div>
           <div className="flex justify-between text-sm mb-2">
             <span className="text-muted-foreground">Progress</span>
-            <span className="text-foreground">{completedTasks}/{tasks.length} tasks</span>
+            <span className="text-foreground">{completedTasks}/{projectTasks.length} tasks</span>
           </div>
           <Progress value={progress} className="h-2" />
         </div>
@@ -229,9 +230,9 @@ export function ProjectDetailView() {
         )}
 
         {/* Task List */}
-        {tasks.length > 0 ? (
+        {projectTasks.length > 0 ? (
           <div className="space-y-2">
-            {tasks.map(task => (
+            {projectTasks.map(task => (
               <TaskCard key={task.id} task={task} showProject={false} isDraggable={false} />
             ))}
           </div>
