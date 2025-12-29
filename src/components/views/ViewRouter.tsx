@@ -5,6 +5,7 @@ import { IdeasView } from './IdeasView';
 import { ProjectsView } from './ProjectsView';
 import { BoardView } from './BoardView';
 import { AreasView } from './AreasView';
+import { AreaDetailView } from './AreaDetailView';
 import { CompletedView } from './CompletedView';
 import { SettingsView } from './SettingsView';
 import { ProjectDetailView } from './ProjectDetailView';
@@ -28,6 +29,8 @@ export function ViewRouter() {
       return <BoardView />;
     case 'areas':
       return <AreasView />;
+    case 'area-detail':
+      return <AreaDetailView />;
     case 'completed':
       return <CompletedView />;
     case 'settings':

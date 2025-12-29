@@ -108,6 +108,7 @@ export type ViewType =
   | 'projects' 
   | 'board' 
   | 'areas' 
+  | 'area-detail'
   | 'completed' 
   | 'settings'
   | 'project-detail'

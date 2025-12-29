@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 
 export function TodayView() {
-  const { tasks, projects, setQuickAddOpen } = useApp();
+  const { tasks, projects, openQuickAdd } = useApp();
 
   const todayTasks = useMemo(() => {
     return tasks
@@ -76,7 +76,7 @@ export function TodayView() {
             </h2>
             <span className="text-sm text-muted-foreground">({todayTasks.length})</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => setQuickAddOpen(true)}>
+          <Button variant="ghost" size="sm" onClick={() => openQuickAdd({ type: 'task', isToday: true })}>
             <Plus className="h-4 w-4 mr-1" />
             Add Task
           </Button>
@@ -95,7 +95,7 @@ export function TodayView() {
             <p className="text-muted-foreground mb-4">
               Add tasks to your day to stay focused
             </p>
-            <Button onClick={() => setQuickAddOpen(true)}>
+            <Button onClick={() => openQuickAdd({ type: 'task', isToday: true })}>
               <Plus className="h-4 w-4 mr-2" />
               Add Task
             </Button>

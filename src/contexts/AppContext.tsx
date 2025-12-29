@@ -7,16 +7,25 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { ViewType } from '@/lib/types';
 import { useData } from '@/hooks/useData';
 
+interface QuickAddDefaults {
+  type?: 'idea' | 'task' | 'project';
+  isToday?: boolean;
+}
+
 interface AppContextType {
   // Navigation
   currentView: ViewType;
   setCurrentView: (view: ViewType) => void;
   selectedProjectId: string | null;
   setSelectedProjectId: (id: string | null) => void;
+  selectedAreaId: string | null;
+  setSelectedAreaId: (id: string | null) => void;
   
   // Quick add
   quickAddOpen: boolean;
   setQuickAddOpen: (open: boolean) => void;
+  quickAddDefaults: QuickAddDefaults;
+  openQuickAdd: (defaults?: QuickAddDefaults) => void;
   
   // Sidebar
   sidebarCollapsed: boolean;
@@ -62,10 +71,49 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [currentView, setCurrentView] = useState<ViewType>('today');
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  // Load initial view from localStorage
+  const [currentView, setCurrentViewState] = useState<ViewType>(() => {
+    const saved = localStorage.getItem('currentView');
+    return (saved as ViewType) || 'today';
+  });
+  const [selectedProjectId, setSelectedProjectIdState] = useState<string | null>(() => {
+    return localStorage.getItem('selectedProjectId');
+  });
+  const [selectedAreaId, setSelectedAreaIdState] = useState<string | null>(() => {
+    return localStorage.getItem('selectedAreaId');
+  });
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [quickAddDefaults, setQuickAddDefaults] = useState<QuickAddDefaults>({});
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  
+  // Persist view state
+  const setCurrentView = useCallback((view: ViewType) => {
+    setCurrentViewState(view);
+    localStorage.setItem('currentView', view);
+  }, []);
+  
+  const setSelectedProjectId = useCallback((id: string | null) => {
+    setSelectedProjectIdState(id);
+    if (id) {
+      localStorage.setItem('selectedProjectId', id);
+    } else {
+      localStorage.removeItem('selectedProjectId');
+    }
+  }, []);
+  
+  const setSelectedAreaId = useCallback((id: string | null) => {
+    setSelectedAreaIdState(id);
+    if (id) {
+      localStorage.setItem('selectedAreaId', id);
+    } else {
+      localStorage.removeItem('selectedAreaId');
+    }
+  }, []);
+  
+  const openQuickAdd = useCallback((defaults: QuickAddDefaults = {}) => {
+    setQuickAddDefaults(defaults);
+    setQuickAddOpen(true);
+  }, []);
   
   const data = useData();
   
@@ -89,8 +137,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setCurrentView,
     selectedProjectId,
     setSelectedProjectId,
+    selectedAreaId,
+    setSelectedAreaId,
     quickAddOpen,
     setQuickAddOpen,
+    quickAddDefaults,
+    openQuickAdd,
     sidebarCollapsed,
     setSidebarCollapsed,
     
