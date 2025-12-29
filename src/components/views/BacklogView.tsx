@@ -1,11 +1,15 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Inbox, Plus } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { TaskCard } from '@/components/shared/TaskCard';
+import { TaskDetailDrawer } from '@/components/dialogs/TaskDetailDrawer';
 import { Button } from '@/components/ui/button';
+import { Task } from '@/lib/types';
 
 export function BacklogView() {
   const { tasks, setQuickAddOpen } = useApp();
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const backlogTasks = useMemo(() => {
     return tasks
@@ -17,6 +21,11 @@ export function BacklogView() {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
   }, [tasks]);
+
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task);
+    setDrawerOpen(true);
+  };
 
   return (
     <div className="p-8 max-w-4xl mx-auto animate-fade-in">
@@ -41,7 +50,9 @@ export function BacklogView() {
       {backlogTasks.length > 0 ? (
         <div className="space-y-2">
           {backlogTasks.map(task => (
-            <TaskCard key={task.id} task={task} isDraggable={false} />
+            <div key={task.id} onClick={() => handleTaskClick(task)} className="cursor-pointer">
+              <TaskCard task={task} isDraggable={false} />
+            </div>
           ))}
         </div>
       ) : (
@@ -57,6 +68,12 @@ export function BacklogView() {
           </Button>
         </div>
       )}
+
+      <TaskDetailDrawer
+        task={selectedTask}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+      />
     </div>
   );
 }

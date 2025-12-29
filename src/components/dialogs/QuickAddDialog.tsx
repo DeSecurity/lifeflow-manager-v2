@@ -31,7 +31,7 @@ export function QuickAddDialog() {
   // Set defaults when dialog opens
   useEffect(() => {
     if (quickAddOpen) {
-      setType(quickAddDefaults.type || 'idea');
+      setType(quickAddDefaults.type || 'task');
       setSelectedAreaId(areas[0]?.id || 'none');
     }
   }, [quickAddOpen, quickAddDefaults.type, areas]);

@@ -1,13 +1,17 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Sun, Calendar, Plus, Star } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { TaskCard } from '@/components/shared/TaskCard';
 import { ProjectCard } from '@/components/shared/ProjectCard';
+import { TaskDetailDrawer } from '@/components/dialogs/TaskDetailDrawer';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
+import { Task } from '@/lib/types';
 
 export function TodayView() {
   const { tasks, projects, openQuickAdd } = useApp();
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const todayTasks = useMemo(() => {
     return tasks
@@ -35,6 +39,11 @@ export function TodayView() {
   const focusProjects = useMemo(() => {
     return projects.filter(p => p.isFocus && !p.archived);
   }, [projects]);
+
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task);
+    setDrawerOpen(true);
+  };
 
   return (
     <div className="p-8 max-w-4xl mx-auto animate-fade-in">
@@ -85,7 +94,9 @@ export function TodayView() {
         {todayTasks.length > 0 ? (
           <div className="space-y-2">
             {todayTasks.map(task => (
-              <TaskCard key={task.id} task={task} isDraggable={false} />
+              <div key={task.id} onClick={() => handleTaskClick(task)} className="cursor-pointer">
+                <TaskCard task={task} isDraggable={false} />
+              </div>
             ))}
           </div>
         ) : (
@@ -114,11 +125,19 @@ export function TodayView() {
           </div>
           <div className="space-y-2 opacity-60">
             {completedToday.map(task => (
-              <TaskCard key={task.id} task={task} isDraggable={false} />
+              <div key={task.id} onClick={() => handleTaskClick(task)} className="cursor-pointer">
+                <TaskCard task={task} isDraggable={false} />
+              </div>
             ))}
           </div>
         </section>
       )}
+
+      <TaskDetailDrawer
+        task={selectedTask}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+      />
     </div>
   );
 }

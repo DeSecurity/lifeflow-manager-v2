@@ -2,11 +2,12 @@ import { useMemo, useState } from 'react';
 import { ArrowLeft, Plus, MoreHorizontal, Trash2 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { TaskCard } from '@/components/shared/TaskCard';
+import { TaskDetailDrawer } from '@/components/dialogs/TaskDetailDrawer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
-import { ProjectStatus, Priority } from '@/lib/types';
+import { ProjectStatus, Priority, Task } from '@/lib/types';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +46,8 @@ export function ProjectDetailView() {
 
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [showAddTask, setShowAddTask] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [taskDrawerOpen, setTaskDrawerOpen] = useState(false);
 
   const project = projects.find(p => p.id === selectedProjectId);
   
@@ -95,6 +98,11 @@ export function ProjectDetailView() {
     deleteProject(project.id);
     setCurrentView('projects');
     setSelectedProjectId(null);
+  };
+
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task);
+    setTaskDrawerOpen(true);
   };
 
   return (
@@ -253,7 +261,9 @@ export function ProjectDetailView() {
         {projectTasks.length > 0 ? (
           <div className="space-y-2">
             {projectTasks.map(task => (
-              <TaskCard key={task.id} task={task} showProject={false} isDraggable={false} />
+              <div key={task.id} onClick={() => handleTaskClick(task)} className="cursor-pointer">
+                <TaskCard task={task} showProject={false} isDraggable={false} />
+              </div>
             ))}
           </div>
         ) : (
@@ -266,6 +276,12 @@ export function ProjectDetailView() {
           </div>
         )}
       </section>
+
+      <TaskDetailDrawer
+        task={selectedTask}
+        open={taskDrawerOpen}
+        onOpenChange={setTaskDrawerOpen}
+      />
     </div>
   );
 }

@@ -2,13 +2,17 @@ import { useMemo, useState } from 'react';
 import { Lightbulb, Plus, Search, Archive } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { IdeaCard } from '@/components/shared/IdeaCard';
+import { IdeaDetailDrawer } from '@/components/dialogs/IdeaDetailDrawer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Idea } from '@/lib/types';
 
 export function IdeasView() {
   const { ideas, setQuickAddOpen } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [showArchived, setShowArchived] = useState(false);
+  const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const filteredIdeas = useMemo(() => {
     return ideas
@@ -28,6 +32,11 @@ export function IdeasView() {
 
   const activeCount = ideas.filter(i => !i.archived).length;
   const archivedCount = ideas.filter(i => i.archived).length;
+
+  const handleIdeaClick = (idea: Idea) => {
+    setSelectedIdea(idea);
+    setDrawerOpen(true);
+  };
 
   return (
     <div className="p-8 max-w-4xl mx-auto animate-fade-in">
@@ -82,7 +91,9 @@ export function IdeasView() {
       {filteredIdeas.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredIdeas.map(idea => (
-            <IdeaCard key={idea.id} idea={idea} />
+            <div key={idea.id} onClick={() => handleIdeaClick(idea)} className="cursor-pointer">
+              <IdeaCard idea={idea} />
+            </div>
           ))}
         </div>
       ) : (
@@ -104,6 +115,12 @@ export function IdeasView() {
           )}
         </div>
       )}
+
+      <IdeaDetailDrawer
+        idea={selectedIdea}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+      />
     </div>
   );
 }
