@@ -1,17 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback, memo } from 'react';
 import { 
   DndContext, 
   DragOverlay,
   PointerSensor,
+  TouchSensor,
+  KeyboardSensor,
   useSensor,
   useSensors,
   DragEndEvent,
   DragStartEvent,
   DragOverEvent,
   useDroppable,
-  closestCenter,
+  rectIntersection,
+  MeasuringStrategy,
 } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { CheckSquare, Filter } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
@@ -34,7 +37,33 @@ const COLUMNS: { id: TaskStatus; label: string; color: string }[] = [
   { id: 'done', label: 'Done', color: 'bg-status-done' },
 ];
 
-function SortableTaskCard({ 
+// Lightweight overlay component for smooth dragging
+const DragOverlayCard = memo(function DragOverlayCard({ task }: { task: Task }) {
+  const priorityColors: Record<string, string> = {
+    critical: 'border-l-priority-critical',
+    high: 'border-l-priority-high',
+    medium: 'border-l-priority-medium',
+    low: 'border-l-priority-low',
+  };
+
+  return (
+    <div
+      className={cn(
+        'bg-card rounded-lg border border-border p-3 shadow-xl',
+        'border-l-2 cursor-grabbing transform scale-105',
+        priorityColors[task.priority]
+      )}
+      style={{ width: 280 }}
+    >
+      <h4 className="text-sm font-medium text-foreground leading-snug truncate">
+        {task.title}
+      </h4>
+    </div>
+  );
+});
+
+// Memoized sortable task card
+const SortableTaskCard = memo(function SortableTaskCard({ 
   task, 
   onTaskClick 
 }: { 
@@ -50,11 +79,15 @@ function SortableTaskCard({
     isDragging,
   } = useSortable({ id: task.id });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
+  const style = useMemo(() => ({
+    transform: CSS.Translate.toString(transform),
+    transition: isDragging ? 'none' : 'transform 150ms ease',
+    opacity: isDragging ? 0 : 1,
+  }), [transform, isDragging]);
+
+  const handleClick = useCallback(() => {
+    onTaskClick(task);
+  }, [onTaskClick, task]);
 
   return (
     <div 
@@ -62,15 +95,25 @@ function SortableTaskCard({
       style={style} 
       {...attributes} 
       {...listeners}
-      onClick={() => onTaskClick(task)} 
+      onClick={handleClick} 
       className="cursor-pointer"
     >
       <TaskCard task={task} />
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  return prevProps.task.id === nextProps.task.id &&
+    prevProps.task.title === nextProps.task.title &&
+    prevProps.task.status === nextProps.task.status &&
+    prevProps.task.priority === nextProps.task.priority &&
+    prevProps.task.dueDate === nextProps.task.dueDate &&
+    prevProps.task.isToday === nextProps.task.isToday &&
+    prevProps.task.projectId === nextProps.task.projectId &&
+    prevProps.onTaskClick === nextProps.onTaskClick;
+});
 
-function DroppableColumn({ 
+// Memoized droppable column
+const DroppableColumn = memo(function DroppableColumn({ 
   column, 
   tasks, 
   isOver,
@@ -84,6 +127,8 @@ function DroppableColumn({
   const { setNodeRef } = useDroppable({
     id: column.id,
   });
+
+  const taskIds = useMemo(() => tasks.map(t => t.id), [tasks]);
 
   return (
     <div
@@ -105,12 +150,12 @@ function DroppableColumn({
       <div 
         ref={setNodeRef}
         className={cn(
-          'flex-1 p-3 overflow-y-auto space-y-2 min-h-[200px] transition-colors',
+          'flex-1 p-3 overflow-y-auto space-y-2 min-h-[200px]',
           isOver && 'bg-primary/10'
         )}
       >
         <SortableContext
-          items={tasks.map(t => t.id)}
+          items={taskIds}
           strategy={verticalListSortingStrategy}
         >
           {tasks.map(task => (
@@ -132,7 +177,13 @@ function DroppableColumn({
       </div>
     </div>
   );
-}
+});
+
+const measuring = {
+  droppable: {
+    strategy: MeasuringStrategy.Always,
+  },
+};
 
 export function BoardView() {
   const { tasks, projects, areas, updateTaskStatus } = useApp();
@@ -154,8 +205,17 @@ export function BoardView() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 5,
       },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
@@ -223,13 +283,13 @@ export function BoardView() {
     return grouped;
   }, [filteredTasks, orderByStatus]);
 
-  const handleDragStart = (event: DragStartEvent) => {
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
     const task = tasks.find(t => t.id === active.id);
     if (task) setActiveTask(task);
-  };
+  }, [tasks]);
 
-  const handleDragOver = (event: DragOverEvent) => {
+  const handleDragOver = useCallback((event: DragOverEvent) => {
     const overId = event.over?.id ? String(event.over.id) : null;
     if (!overId) {
       setOverColumn(null);
@@ -244,9 +304,9 @@ export function BoardView() {
 
     const overTask = tasks.find(t => t.id === overId);
     setOverColumn(overTask?.status ?? null);
-  };
+  }, [tasks]);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
 
     setActiveTask(null);
@@ -299,12 +359,12 @@ export function BoardView() {
     if (activeTaskRow.status !== nextStatus) {
       updateTaskStatus(activeId, nextStatus);
     }
-  };
+  }, [tasks, updateTaskStatus]);
 
-  const handleTaskClick = (task: Task) => {
+  const handleTaskClick = useCallback((task: Task) => {
     setSelectedTask(task);
     setTaskDrawerOpen(true);
-  };
+  }, []);
 
   return (
     <div className="h-screen flex flex-col animate-fade-in">
@@ -359,7 +419,8 @@ export function BoardView() {
       <div className="flex-1 overflow-x-auto p-6">
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
+          collisionDetection={rectIntersection}
+          measuring={measuring}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
@@ -376,8 +437,11 @@ export function BoardView() {
             ))}
           </div>
 
-          <DragOverlay>
-            {activeTask && <TaskCard task={activeTask} isDraggable={false} />}
+          <DragOverlay dropAnimation={{
+            duration: 150,
+            easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+          }}>
+            {activeTask && <DragOverlayCard task={activeTask} />}
           </DragOverlay>
         </DndContext>
       </div>
