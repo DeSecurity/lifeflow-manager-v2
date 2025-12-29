@@ -7,6 +7,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,13 +26,15 @@ export function QuickAddDialog() {
   const [type, setType] = useState<AddType>('idea');
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
+  const [selectedAreaId, setSelectedAreaId] = useState<string>('none');
   
   // Set defaults when dialog opens
   useEffect(() => {
     if (quickAddOpen) {
       setType(quickAddDefaults.type || 'idea');
+      setSelectedAreaId(areas[0]?.id || 'none');
     }
-  }, [quickAddOpen, quickAddDefaults.type]);
+  }, [quickAddOpen, quickAddDefaults.type, areas]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +58,7 @@ export function QuickAddDialog() {
         createProject({
           title: title.trim(),
           description: notes.trim() || undefined,
-          areaId: areas[0]?.id || '',
+          areaId: selectedAreaId !== 'none' ? selectedAreaId : undefined,
           status: 'backlog',
           priority: 'medium',
           tags: [],
@@ -116,6 +125,28 @@ export function QuickAddDialog() {
             className="bg-surface-2 border-border text-foreground placeholder:text-muted-foreground resize-none"
             rows={3}
           />
+
+          {/* Area Selector (for projects) */}
+          {type === 'project' && (
+            <div>
+              <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                Area
+              </label>
+              <Select value={selectedAreaId} onValueChange={setSelectedAreaId}>
+                <SelectTrigger className="bg-surface-2 border-border">
+                  <SelectValue placeholder="Select an area" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No area</SelectItem>
+                  {areas.map(area => (
+                    <SelectItem key={area.id} value={area.id}>
+                      {area.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex justify-end gap-2">

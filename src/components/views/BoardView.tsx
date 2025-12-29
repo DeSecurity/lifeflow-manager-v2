@@ -9,8 +9,10 @@ import {
   DragStartEvent,
   DragOverEvent,
   useDroppable,
+  closestCenter,
 } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { CheckSquare, Filter } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { Task, TaskStatus } from '@/lib/types';
@@ -31,6 +33,42 @@ const COLUMNS: { id: TaskStatus; label: string; color: string }[] = [
   { id: 'in-progress', label: 'In Progress', color: 'bg-status-inprogress' },
   { id: 'done', label: 'Done', color: 'bg-status-done' },
 ];
+
+function SortableTaskCard({ 
+  task, 
+  onTaskClick 
+}: { 
+  task: Task; 
+  onTaskClick: (task: Task) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      {...attributes} 
+      {...listeners}
+      onClick={() => onTaskClick(task)} 
+      className="cursor-pointer"
+    >
+      <TaskCard task={task} />
+    </div>
+  );
+}
 
 function DroppableColumn({ 
   column, 
@@ -76,9 +114,7 @@ function DroppableColumn({
           strategy={verticalListSortingStrategy}
         >
           {tasks.map(task => (
-            <div key={task.id} onClick={() => onTaskClick(task)} className="cursor-pointer">
-              <TaskCard task={task} />
-            </div>
+            <SortableTaskCard key={task.id} task={task} onTaskClick={onTaskClick} />
           ))}
         </SortableContext>
 

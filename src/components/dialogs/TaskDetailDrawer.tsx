@@ -189,12 +189,12 @@ export function TaskDetailDrawer({ task, open, onOpenChange }: TaskDetailDrawerP
             <label className="text-sm font-medium text-muted-foreground mb-2 block">
               Project
             </label>
-            <Select value={projectId} onValueChange={setProjectId}>
+            <Select value={projectId || "none"} onValueChange={(v) => setProjectId(v === "none" ? "" : v)}>
               <SelectTrigger className="bg-surface-2 border-border">
                 <SelectValue placeholder="No project" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No project</SelectItem>
+                <SelectItem value="none">No project</SelectItem>
                 {projects.filter(p => !p.archived).map(project => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.title}
