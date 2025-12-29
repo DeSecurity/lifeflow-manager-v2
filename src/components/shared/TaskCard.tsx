@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { format, isToday, isTomorrow, isPast } from 'date-fns';
@@ -34,7 +35,7 @@ const priorityDots: Record<Priority, string> = {
   low: 'bg-priority-low',
 };
 
-export function TaskCard({ task, showProject = true, isDraggable = true }: TaskCardProps) {
+export const TaskCard = memo(function TaskCard({ task, showProject = true, isDraggable = true }: TaskCardProps) {
   const { projects, updateTaskStatus, toggleTaskToday, deleteTask } = useApp();
   
   const {
@@ -79,7 +80,7 @@ export function TaskCard({ task, showProject = true, isDraggable = true }: TaskC
       ref={setNodeRef}
       style={style}
       className={cn(
-        'group relative bg-card rounded-lg border border-border p-3 transition-all duration-200',
+        'group relative bg-card rounded-lg border border-border p-3 transition-colors',
         'hover:border-muted-foreground/30 hover:shadow-lg hover:shadow-black/5',
         priorityColors[task.priority],
         'border-l-2',
@@ -204,4 +205,4 @@ export function TaskCard({ task, showProject = true, isDraggable = true }: TaskC
       </div>
     </div>
   );
-}
+});
