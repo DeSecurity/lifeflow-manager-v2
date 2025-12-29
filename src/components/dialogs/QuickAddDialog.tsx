@@ -58,7 +58,7 @@ export function QuickAddDialog() {
         createProject({
           title: title.trim(),
           description: notes.trim() || undefined,
-          areaId: selectedAreaId !== 'none' ? selectedAreaId : undefined,
+          areaId: selectedAreaId !== 'none' ? selectedAreaId : '',
           status: 'backlog',
           priority: 'medium',
           tags: [],
