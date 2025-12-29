@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
-import { CalendarDays } from 'lucide-react';
+import { CalendarDays, Plus, Sun } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { TaskCard } from '@/components/shared/TaskCard';
-import { addDays, format, startOfDay } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { addDays, format, startOfDay, endOfWeek, isWithinInterval } from 'date-fns';
 
 export function ThisWeekView() {
-  const { tasks } = useApp();
+  const { tasks, openQuickAdd } = useApp();
 
   const weekDays = useMemo(() => {
     const today = startOfDay(new Date());
@@ -18,9 +19,18 @@ export function ThisWeekView() {
       else if (i === 1) label = 'Tomorrow - ' + format(date, 'MMMM d');
 
       const dayTasks = tasks.filter(task => {
-        if (!task.dueDate || task.status === 'done') return false;
-        const dueDate = startOfDay(new Date(task.dueDate));
-        return dueDate.getTime() === date.getTime();
+        if (task.status === 'done') return false;
+        
+        // Tasks with due date on this day
+        if (task.dueDate) {
+          const dueDate = startOfDay(new Date(task.dueDate));
+          if (dueDate.getTime() === date.getTime()) return true;
+        }
+        
+        // For today (i === 0), also show tasks marked as "today"
+        if (i === 0 && task.isToday) return true;
+        
+        return false;
       });
 
       days.push({ date, label, tasks: dayTasks });
@@ -52,6 +62,10 @@ export function ThisWeekView() {
             <h1 className="text-2xl font-bold text-foreground">This Week</h1>
             <p className="text-muted-foreground">{totalTasks} tasks scheduled</p>
           </div>
+          <Button variant="ghost" size="sm" onClick={() => openQuickAdd({ type: 'task' })}>
+            <Plus className="h-4 w-4 mr-1" />
+            Add Task
+          </Button>
         </div>
       </div>
 

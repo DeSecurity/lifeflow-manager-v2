@@ -15,6 +15,7 @@ import { CheckSquare, Filter } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { Task, TaskStatus } from '@/lib/types';
 import { TaskCard } from '@/components/shared/TaskCard';
+import { TaskDetailDrawer } from '@/components/dialogs/TaskDetailDrawer';
 import { cn } from '@/lib/utils';
 import {
   Select,
@@ -175,9 +176,10 @@ export function BoardView() {
 
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
-    // TODO: Open task detail modal/drawer
-    console.log('Task clicked:', task.title);
+    setTaskDrawerOpen(true);
   };
+
+  const [taskDrawerOpen, setTaskDrawerOpen] = useState(false);
 
   return (
     <div className="h-screen flex flex-col animate-fade-in">
@@ -253,6 +255,13 @@ export function BoardView() {
           </DragOverlay>
         </DndContext>
       </div>
+
+      {/* Task Detail Drawer */}
+      <TaskDetailDrawer
+        task={selectedTask}
+        open={taskDrawerOpen}
+        onOpenChange={setTaskDrawerOpen}
+      />
     </div>
   );
 }
