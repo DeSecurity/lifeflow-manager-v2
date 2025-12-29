@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { 
   DndContext, 
   DragOverlay,
@@ -137,10 +137,19 @@ function DroppableColumn({
 export function BoardView() {
   const { tasks, projects, areas, updateTaskStatus } = useApp();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
-  const [overColumn, setOverColumn] = useState<string | null>(null);
+  const [overColumn, setOverColumn] = useState<TaskStatus | null>(null);
   const [projectFilter, setProjectFilter] = useState<string>('all');
   const [areaFilter, setAreaFilter] = useState<string>('all');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [taskDrawerOpen, setTaskDrawerOpen] = useState(false);
+
+  const [orderByStatus, setOrderByStatus] = useState<Record<TaskStatus, string[]>>({
+    backlog: [],
+    todo: [],
+    'in-progress': [],
+    blocked: [],
+    done: [],
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -161,6 +170,32 @@ export function BoardView() {
     });
   }, [tasks, projects, projectFilter, areaFilter]);
 
+  // Keep a stable, user-controlled order per column.
+  useEffect(() => {
+    const idsByStatus: Record<TaskStatus, string[]> = {
+      backlog: [],
+      todo: [],
+      'in-progress': [],
+      blocked: [],
+      done: [],
+    };
+
+    filteredTasks.forEach(t => {
+      idsByStatus[t.status].push(t.id);
+    });
+
+    setOrderByStatus(prev => {
+      const next: Record<TaskStatus, string[]> = { ...prev };
+      (Object.keys(idsByStatus) as TaskStatus[]).forEach(status => {
+        const ids = idsByStatus[status];
+        const kept = (prev[status] || []).filter(id => ids.includes(id));
+        const added = ids.filter(id => !kept.includes(id));
+        next[status] = [...kept, ...added];
+      });
+      return next;
+    });
+  }, [filteredTasks]);
+
   const tasksByStatus = useMemo(() => {
     const grouped: Record<TaskStatus, Task[]> = {
       backlog: [],
@@ -169,13 +204,24 @@ export function BoardView() {
       blocked: [],
       done: [],
     };
-    
+
     filteredTasks.forEach(task => {
       grouped[task.status].push(task);
     });
 
+    (Object.keys(grouped) as TaskStatus[]).forEach(status => {
+      const order = orderByStatus[status] || [];
+      const orderIndex = new Map(order.map((id, idx) => [id, idx]));
+      grouped[status].sort((a, b) => {
+        const ai = orderIndex.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+        const bi = orderIndex.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+        if (ai !== bi) return ai - bi;
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      });
+    });
+
     return grouped;
-  }, [filteredTasks]);
+  }, [filteredTasks, orderByStatus]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -184,29 +230,74 @@ export function BoardView() {
   };
 
   const handleDragOver = (event: DragOverEvent) => {
-    const { over } = event;
-    if (over) {
-      const columnId = COLUMNS.find(c => c.id === over.id)?.id;
-      setOverColumn(columnId || null);
-    } else {
+    const overId = event.over?.id ? String(event.over.id) : null;
+    if (!overId) {
       setOverColumn(null);
+      return;
     }
+
+    const isColumn = COLUMNS.some(c => c.id === overId);
+    if (isColumn) {
+      setOverColumn(overId as TaskStatus);
+      return;
+    }
+
+    const overTask = tasks.find(t => t.id === overId);
+    setOverColumn(overTask?.status ?? null);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+
     setActiveTask(null);
     setOverColumn(null);
 
-    if (over) {
-      // Check if dropped on a column
-      const newStatus = COLUMNS.find(c => c.id === over.id)?.id;
-      if (newStatus && active.id) {
-        const task = tasks.find(t => t.id === active.id);
-        if (task && task.status !== newStatus) {
-          updateTaskStatus(active.id as string, newStatus);
-        }
+    const activeId = active?.id ? String(active.id) : null;
+    const overId = over?.id ? String(over.id) : null;
+    if (!activeId || !overId || activeId === overId) return;
+
+    const activeTaskRow = tasks.find(t => t.id === activeId);
+    if (!activeTaskRow) return;
+
+    const overIsColumn = COLUMNS.some(c => c.id === overId);
+    const overTaskRow = overIsColumn ? null : tasks.find(t => t.id === overId);
+    const nextStatus: TaskStatus | null = overIsColumn
+      ? (overId as TaskStatus)
+      : (overTaskRow?.status ?? null);
+
+    if (!nextStatus) return;
+
+    // Update in-column order immediately for snappy UI.
+    setOrderByStatus(prev => {
+      const fromStatus = activeTaskRow.status;
+      const next: Record<TaskStatus, string[]> = { ...prev };
+
+      if (fromStatus === nextStatus) {
+        if (!overTaskRow) return next;
+
+        const order = next[nextStatus] || [];
+        const oldIndex = order.indexOf(activeId);
+        const newIndex = order.indexOf(overId);
+        if (oldIndex === -1 || newIndex === -1) return next;
+
+        next[nextStatus] = arrayMove(order, oldIndex, newIndex);
+        return next;
       }
+
+      // Move across columns
+      next[fromStatus] = (next[fromStatus] || []).filter(id => id !== activeId);
+
+      const toOrder = (next[nextStatus] || []).filter(id => id !== activeId);
+      const insertAt = overTaskRow ? toOrder.indexOf(overId) : toOrder.length;
+      toOrder.splice(insertAt < 0 ? toOrder.length : insertAt, 0, activeId);
+      next[nextStatus] = toOrder;
+
+      return next;
+    });
+
+    // Persist status change.
+    if (activeTaskRow.status !== nextStatus) {
+      updateTaskStatus(activeId, nextStatus);
     }
   };
 
@@ -214,8 +305,6 @@ export function BoardView() {
     setSelectedTask(task);
     setTaskDrawerOpen(true);
   };
-
-  const [taskDrawerOpen, setTaskDrawerOpen] = useState(false);
 
   return (
     <div className="h-screen flex flex-col animate-fade-in">
@@ -270,6 +359,7 @@ export function BoardView() {
       <div className="flex-1 overflow-x-auto p-6">
         <DndContext
           sensors={sensors}
+          collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}

@@ -166,6 +166,26 @@ export function ProjectDetailView() {
           </div>
 
           <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Area:</span>
+            <Select
+              value={project.areaId || 'none'}
+              onValueChange={(v) => updateProject(project.id, { areaId: v === 'none' ? '' : v })}
+            >
+              <SelectTrigger className="h-8 w-[160px]">
+                <SelectValue placeholder="No area" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No area</SelectItem>
+                {areas.map(a => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
             <span className="text-muted-foreground">Priority:</span>
             <Select 
               value={project.priority} 
