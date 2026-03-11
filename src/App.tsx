@@ -9,6 +9,7 @@ import { AppProvider } from "@/contexts/AppContext";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ViewRouter } from "@/components/views/ViewRouter";
 import { AuthPage } from "@/pages/AuthPage";
+import { ResetPasswordPage } from "@/pages/ResetPasswordPage";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -77,6 +78,7 @@ const App = () => (
                 </AuthRedirect>
               }
             />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route
               path="/*"
               element={
