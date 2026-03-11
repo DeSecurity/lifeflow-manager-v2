@@ -78,6 +78,7 @@ const App = () => (
                 </AuthRedirect>
               }
             />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route
               path="/*"
               element={
