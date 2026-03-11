@@ -165,6 +165,13 @@ export function AuthPage() {
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Sign In
                   </Button>
+                  <button
+                    type="button"
+                    className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => setForgotMode(true)}
+                  >
+                    Forgot your password?
+                  </button>
                 </form>
               </TabsContent>
 
