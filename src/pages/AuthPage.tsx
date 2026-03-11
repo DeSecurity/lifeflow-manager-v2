@@ -118,6 +118,29 @@ export function AuthPage() {
         </div>
 
         <Card className="border-border/50 bg-card/50 backdrop-blur">
+          {forgotMode ? (
+            <ForgotPasswordCard
+              email={email}
+              setEmail={setEmail}
+              loading={resetLoading}
+              onBack={() => setForgotMode(false)}
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!email.trim()) return;
+                setResetLoading(true);
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                  redirectTo: `${window.location.origin}/reset-password`,
+                });
+                setResetLoading(false);
+                if (error) {
+                  toast({ title: 'Error', description: error.message, variant: 'destructive' });
+                } else {
+                  toast({ title: 'Check your email', description: 'We sent you a password reset link.' });
+                }
+              }}
+            />
+          ) : (
+          <>
           <CardHeader className="space-y-1 pb-4">
             <CardTitle className="text-xl">Welcome</CardTitle>
             <CardDescription>Sign in or create an account to continue</CardDescription>
