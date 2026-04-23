@@ -106,7 +106,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } finally {
+      try {
+        const clearAuthTokens = (storage: Storage) => {
+          for (let i = storage.length - 1; i >= 0; i--) {
+            const key = storage.key(i);
+            if (key && key.startsWith(STORAGE_KEY_PREFIX) && key.includes('-auth-token')) {
+              storage.removeItem(key);
+            }
+          }
+        };
+
+        clearAuthTokens(localStorage);
+        clearAuthTokens(sessionStorage);
+        localStorage.removeItem(REMEMBER_FLAG_KEY);
+      } catch {
+        // Ignore storage cleanup errors.
+      }
+    }
   };
 
   return (
