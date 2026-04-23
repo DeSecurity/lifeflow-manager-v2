@@ -216,37 +216,55 @@ export function Sidebar() {
         ))}
       </div>
 
-      {/* User Indicator */}
-      {!sidebarCollapsed && user && (
+      {/* User Indicator + Sign out */}
+      {user && (
         <div className="p-3 border-t border-sidebar-border">
-          <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-sidebar-accent/50">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary/50 to-accent/50 flex items-center justify-center">
-              <span className="text-sm font-medium text-foreground">
-                {user.email?.charAt(0).toUpperCase()}
-              </span>
+          {!sidebarCollapsed ? (
+            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-sidebar-accent/50">
+              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary/50 to-accent/50 flex items-center justify-center shrink-0">
+                <span className="text-sm font-medium text-foreground">
+                  {user.email?.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-sidebar-foreground truncate">
+                  {user.email}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {projects.length} projects
+                </p>
+              </div>
+              <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={() => signOut()}
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Sign out</TooltipContent>
+              </Tooltip>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">
-                {user.email}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {projects.length} projects
-              </p>
-            </div>
-            <Tooltip>
+          ) : (
+            <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                 <Button
+                  type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
-                  onClick={signOut}
+                  className="w-full h-10 text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
+                  onClick={() => signOut()}
                 >
                   <LogOut className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Sign out</TooltipContent>
+              <TooltipContent side="right">Sign out</TooltipContent>
             </Tooltip>
-          </div>
+          )}
         </div>
       )}
     </aside>
