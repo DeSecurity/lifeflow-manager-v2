@@ -85,7 +85,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [quickAddDefaults, setQuickAddDefaults] = useState<QuickAddDefaults>({});
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsedState] = useState<boolean>(() => {
+    const stored = localStorage.getItem('sidebarCollapsed');
+    // Default to collapsed on first login / when not set
+    return stored === null ? true : stored === 'true';
+  });
+  const setSidebarCollapsed = useCallback((collapsed: boolean) => {
+    setSidebarCollapsedState(collapsed);
+    localStorage.setItem('sidebarCollapsed', String(collapsed));
+  }, []);
   
   // Persist view state
   const setCurrentView = useCallback((view: ViewType) => {

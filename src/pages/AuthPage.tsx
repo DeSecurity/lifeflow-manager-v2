@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
@@ -23,6 +24,7 @@ const authSchema = z.object({
 export function AuthPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [forgotMode, setForgotMode] = useState(false);
@@ -77,7 +79,7 @@ export function AuthPage() {
     if (!validateForm()) return;
     
     setLoading(true);
-    const { error } = await signIn(email, password);
+    const { error } = await signIn(email, password, rememberMe);
     setLoading(false);
 
     if (error) {
@@ -183,6 +185,19 @@ export function AuthPage() {
                         required
                       />
                     </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <label
+                      htmlFor="remember-me"
+                      className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground cursor-pointer select-none"
+                    >
+                      <Checkbox
+                        id="remember-me"
+                        checked={rememberMe}
+                        onCheckedChange={(v) => setRememberMe(v === true)}
+                      />
+                      Remember me
+                    </label>
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
