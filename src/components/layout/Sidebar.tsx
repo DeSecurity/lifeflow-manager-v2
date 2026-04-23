@@ -240,8 +240,12 @@ export function Sidebar() {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 shrink-0"
-                    onClick={() => signOut()}
+                    className="h-8 w-8 shrink-0 relative z-10"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      void signOut();
+                    }}
                   >
                     <LogOut className="h-4 w-4" />
                   </Button>
