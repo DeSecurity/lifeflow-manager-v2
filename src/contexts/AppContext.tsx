@@ -86,6 +86,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [quickAddDefaults, setQuickAddDefaults] = useState<QuickAddDefaults>({});
   const [sidebarCollapsed, setSidebarCollapsedState] = useState<boolean>(() => {
+    // Always start collapsed on mobile/small screens, regardless of stored preference
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
+      return true;
+    }
     const stored = localStorage.getItem('sidebarCollapsed');
     // Default to collapsed on first login / when not set
     return stored === null ? true : stored === 'true';
@@ -93,6 +97,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const setSidebarCollapsed = useCallback((collapsed: boolean) => {
     setSidebarCollapsedState(collapsed);
     localStorage.setItem('sidebarCollapsed', String(collapsed));
+  }, []);
+
+  // Auto-collapse sidebar when viewport shrinks to mobile size
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mql = window.matchMedia('(max-width: 768px)');
+    const handler = (e: MediaQueryListEvent) => {
+      if (e.matches) setSidebarCollapsedState(true);
+    };
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
   }, []);
   
   // Persist view state
