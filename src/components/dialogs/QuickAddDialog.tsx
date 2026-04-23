@@ -32,9 +32,9 @@ export function QuickAddDialog() {
   useEffect(() => {
     if (quickAddOpen) {
       setType(quickAddDefaults.type || 'task');
-      setSelectedAreaId(areas[0]?.id || 'none');
+      setSelectedAreaId(quickAddDefaults.areaId || areas[0]?.id || 'none');
     }
-  }, [quickAddOpen, quickAddDefaults.type, areas]);
+  }, [quickAddOpen, quickAddDefaults.type, quickAddDefaults.areaId, areas]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
