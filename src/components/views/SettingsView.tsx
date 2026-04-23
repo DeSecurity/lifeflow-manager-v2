@@ -268,6 +268,49 @@ export function SettingsView() {
           </div>
         </section>
 
+        {/* Data Backup */}
+        <section className="bg-card rounded-xl border border-border p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Database className="h-5 w-5 text-muted-foreground" />
+            <h2 className="font-semibold text-foreground">Data Backup</h2>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="font-medium text-foreground">Export all data</p>
+                <p className="text-sm text-muted-foreground">
+                  Download a JSON file with all your areas, projects, tasks, ideas, tags & settings.
+                </p>
+              </div>
+              <Button variant="outline" onClick={handleExport} disabled={exporting}>
+                <Download className="h-4 w-4 mr-2" />
+                {exporting ? 'Exporting…' : 'Export'}
+              </Button>
+            </div>
+
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="font-medium text-foreground">Import from backup</p>
+                <p className="text-sm text-muted-foreground">
+                  Restore data from a previously exported JSON file. Adds rows to your account.
+                </p>
+              </div>
+              <Button variant="outline" onClick={handleImportClick} disabled={importing}>
+                <Upload className="h-4 w-4 mr-2" />
+                {importing ? 'Importing…' : 'Import'}
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/json,.json"
+                className="hidden"
+                onChange={handleImportFile}
+              />
+            </div>
+          </div>
+        </section>
+
         {/* App Info */}
         <section className="text-center py-8">
           <p className="text-sm text-muted-foreground">
