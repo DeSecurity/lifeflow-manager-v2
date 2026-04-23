@@ -1,0 +1,14 @@
+{
+  "name": "Life PM",
+  "short_name": "Life PM",
+  "description": "Organize your life, projects, tasks, and ideas.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0b10",
+  "theme_color": "#0b0b10",
+  "icons": [
+    { "src": "./favicon.svg", "type": "image/svg+xml", "sizes": "any" },
+    { "src": "./apple-touch-icon.png", "type": "image/png", "sizes": "180x180" }
+  ]
+}
