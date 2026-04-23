@@ -3,6 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+// Use Vite's BASE_URL so the app works both at "/" (Lovable) and "/repo-name/" (GitHub Pages).
+const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, "") || "/";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { DataProvider } from "@/hooks/useData";
 import { AppProvider } from "@/contexts/AppContext";
@@ -65,7 +68,7 @@ function AppContent() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={routerBasename}>
         <AuthProvider>
           <Toaster />
           <Sonner />
