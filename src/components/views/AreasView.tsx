@@ -11,6 +11,8 @@ import {
   FolderKanban,
   CheckSquare,
   Plus,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
@@ -29,6 +31,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import type { Area } from '@/lib/types';
 
 const areaIcons: Record<string, React.ElementType> = {
   briefcase: Briefcase,
@@ -71,12 +84,14 @@ const colorOptions = [
 ];
 
 export function AreasView() {
-  const { areas, projects, tasks, setCurrentView, setSelectedAreaId, createArea } = useApp();
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [newAreaName, setNewAreaName] = useState('');
-  const [newAreaDescription, setNewAreaDescription] = useState('');
-  const [newAreaIcon, setNewAreaIcon] = useState('sparkles');
-  const [newAreaColor, setNewAreaColor] = useState('area-personal');
+  const { areas, projects, tasks, setCurrentView, setSelectedAreaId, createArea, updateArea, deleteArea } = useApp();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingArea, setEditingArea] = useState<Area | null>(null);
+  const [areaName, setAreaName] = useState('');
+  const [areaDescription, setAreaDescription] = useState('');
+  const [areaIcon, setAreaIcon] = useState('sparkles');
+  const [areaColor, setAreaColor] = useState('area-personal');
+  const [deleteTarget, setDeleteTarget] = useState<Area | null>(null);
 
   const areaStats = useMemo(() => {
     return areas.map(area => {
@@ -99,21 +114,62 @@ export function AreasView() {
     });
   }, [areas, projects, tasks]);
 
-  const handleAddArea = () => {
-    if (!newAreaName.trim()) return;
-    
-    createArea({
-      name: newAreaName.trim(),
-      description: newAreaDescription.trim() || undefined,
-      icon: newAreaIcon,
-      color: newAreaColor,
-    });
+  const resetForm = () => {
+    setAreaName('');
+    setAreaDescription('');
+    setAreaIcon('sparkles');
+    setAreaColor('area-personal');
+    setEditingArea(null);
+  };
 
-    setNewAreaName('');
-    setNewAreaDescription('');
-    setNewAreaIcon('sparkles');
-    setNewAreaColor('area-personal');
-    setShowAddDialog(false);
+  const openAdd = () => {
+    resetForm();
+    setDialogOpen(true);
+  };
+
+  const openEdit = (e: React.MouseEvent, area: Area) => {
+    e.stopPropagation();
+    setEditingArea(area);
+    setAreaName(area.name);
+    setAreaDescription(area.description || '');
+    setAreaIcon(area.icon || 'sparkles');
+    setAreaColor(area.color || 'area-personal');
+    setDialogOpen(true);
+  };
+
+  const handleSubmit = () => {
+    if (!areaName.trim()) return;
+
+    if (editingArea) {
+      updateArea(editingArea.id, {
+        name: areaName.trim(),
+        description: areaDescription.trim() || undefined,
+        icon: areaIcon,
+        color: areaColor,
+      });
+    } else {
+      createArea({
+        name: areaName.trim(),
+        description: areaDescription.trim() || undefined,
+        icon: areaIcon,
+        color: areaColor,
+      });
+    }
+
+    resetForm();
+    setDialogOpen(false);
+  };
+
+  const handleDialogChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) resetForm();
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      deleteArea(deleteTarget.id);
+      setDeleteTarget(null);
+    }
   };
 
   return (
@@ -129,7 +185,7 @@ export function AreasView() {
             <p className="text-muted-foreground">Organize your life into meaningful categories</p>
           </div>
         </div>
-        <Button onClick={() => setShowAddDialog(true)}>
+        <Button onClick={openAdd}>
           <Plus className="h-4 w-4 mr-2" />
           Add Area
         </Button>
@@ -153,8 +209,33 @@ export function AreasView() {
                 'hover:border-muted-foreground/30 hover:shadow-lg cursor-pointer'
               )}
             >
+              {/* Edit / Delete actions */}
+              <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={(e) => openEdit(e, area)}
+                  aria-label={`Edit ${area.name}`}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteTarget(area);
+                  }}
+                  aria-label={`Delete ${area.name}`}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+
               {/* Icon & Title */}
-              <div className="flex items-start gap-4 mb-4">
+              <div className="flex items-start gap-4 mb-4 pr-16">
                 <div className={cn(
                   'h-12 w-12 rounded-xl bg-gradient-to-br flex items-center justify-center shrink-0',
                   gradient
@@ -203,11 +284,13 @@ export function AreasView() {
         })}
       </div>
 
-      {/* Add Area Dialog */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+      {/* Add / Edit Area Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
         <DialogContent className="sm:max-w-[425px] bg-card border-border">
           <DialogHeader>
-            <DialogTitle className="text-foreground">Add New Area</DialogTitle>
+            <DialogTitle className="text-foreground">
+              {editingArea ? 'Edit Area' : 'Add New Area'}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
@@ -215,8 +298,8 @@ export function AreasView() {
                 Name
               </label>
               <Input
-                value={newAreaName}
-                onChange={e => setNewAreaName(e.target.value)}
+                value={areaName}
+                onChange={e => setAreaName(e.target.value)}
                 placeholder="Area name"
                 className="bg-surface-2 border-border"
               />
@@ -226,8 +309,8 @@ export function AreasView() {
                 Description
               </label>
               <Input
-                value={newAreaDescription}
-                onChange={e => setNewAreaDescription(e.target.value)}
+                value={areaDescription}
+                onChange={e => setAreaDescription(e.target.value)}
                 placeholder="Optional description"
                 className="bg-surface-2 border-border"
               />
@@ -237,7 +320,7 @@ export function AreasView() {
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">
                   Icon
                 </label>
-                <Select value={newAreaIcon} onValueChange={setNewAreaIcon}>
+                <Select value={areaIcon} onValueChange={setAreaIcon}>
                   <SelectTrigger className="bg-surface-2 border-border">
                     <SelectValue />
                   </SelectTrigger>
@@ -260,7 +343,7 @@ export function AreasView() {
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">
                   Color
                 </label>
-                <Select value={newAreaColor} onValueChange={setNewAreaColor}>
+                <Select value={areaColor} onValueChange={setAreaColor}>
                   <SelectTrigger className="bg-surface-2 border-border">
                     <SelectValue />
                   </SelectTrigger>
@@ -278,16 +361,38 @@ export function AreasView() {
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-4">
-              <Button variant="ghost" onClick={() => setShowAddDialog(false)}>
+              <Button variant="ghost" onClick={() => handleDialogChange(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleAddArea} disabled={!newAreaName.trim()}>
-                Add Area
+              <Button onClick={handleSubmit} disabled={!areaName.trim()}>
+                {editingArea ? 'Save Changes' : 'Add Area'}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete "{deleteTarget?.name}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove the area. Projects and tasks assigned to it will lose their area
+              association but won't be deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
