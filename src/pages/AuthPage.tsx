@@ -186,6 +186,19 @@ export function AuthPage() {
                       />
                     </div>
                   </div>
+                  <div className="flex items-center justify-between">
+                    <label
+                      htmlFor="remember-me"
+                      className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground cursor-pointer select-none"
+                    >
+                      <Checkbox
+                        id="remember-me"
+                        checked={rememberMe}
+                        onCheckedChange={(v) => setRememberMe(v === true)}
+                      />
+                      Remember me
+                    </label>
+                  </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Sign In
