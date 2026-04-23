@@ -209,33 +209,8 @@ export function AreasView() {
                 'hover:border-muted-foreground/30 hover:shadow-lg cursor-pointer'
               )}
             >
-              {/* Edit / Delete actions */}
-              <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={(e) => openEdit(e, area)}
-                  aria-label={`Edit ${area.name}`}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-destructive hover:text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDeleteTarget(area);
-                  }}
-                  aria-label={`Delete ${area.name}`}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-
               {/* Icon & Title */}
-              <div className="flex items-start gap-4 mb-4 pr-16">
+              <div className="flex items-start gap-4 mb-4">
                 <div className={cn(
                   'h-12 w-12 rounded-xl bg-gradient-to-br flex items-center justify-center shrink-0',
                   gradient
