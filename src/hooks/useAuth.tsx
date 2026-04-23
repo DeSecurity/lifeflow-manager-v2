@@ -11,9 +11,37 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+}
+
+const STORAGE_KEY_PREFIX = 'sb-';
+const REMEMBER_FLAG_KEY = 'lifepm.rememberMe';
+
+/**
+ * Move the persisted Supabase auth token between localStorage and sessionStorage
+ * to honor the "Remember me" choice. When rememberMe=false, the session lives in
+ * sessionStorage and is cleared when the browser/tab closes.
+ */
+function applySessionPersistence(rememberMe: boolean) {
+  try {
+    const target = rememberMe ? localStorage : sessionStorage;
+    const source = rememberMe ? sessionStorage : localStorage;
+    for (let i = source.length - 1; i >= 0; i--) {
+      const key = source.key(i);
+      if (key && key.startsWith(STORAGE_KEY_PREFIX) && key.includes('-auth-token')) {
+        const value = source.getItem(key);
+        if (value !== null) {
+          target.setItem(key, value);
+          source.removeItem(key);
+        }
+      }
+    }
+    localStorage.setItem(REMEMBER_FLAG_KEY, String(rememberMe));
+  } catch {
+    // Storage may be unavailable; fall back silently.
+  }
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -56,11 +84,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, rememberMe = true) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    if (!error) {
+      applySessionPersistence(rememberMe);
+    }
     return { error };
   };
 
