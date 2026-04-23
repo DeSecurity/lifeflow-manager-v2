@@ -10,6 +10,7 @@ import { useData } from '@/hooks/useData';
 interface QuickAddDefaults {
   type?: 'idea' | 'task' | 'project';
   isToday?: boolean;
+  areaId?: string;
 }
 
 interface AppContextType {

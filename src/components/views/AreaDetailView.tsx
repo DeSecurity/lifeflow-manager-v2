@@ -125,7 +125,7 @@ export function AreaDetailView() {
             </h2>
             <span className="text-sm text-muted-foreground">({areaProjects.length})</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => openQuickAdd({ type: 'project' })}>
+          <Button variant="ghost" size="sm" onClick={() => openQuickAdd({ type: 'project', areaId: selectedAreaId || undefined })}>
             <Plus className="h-4 w-4 mr-1" />
             Add Project
           </Button>
